@@ -4,6 +4,42 @@ This project provides a **Composer plugin** that automatically copies a ready-to
 
 ---
 
+## Supported Variants
+
+This template supports **two main variants** for your Docker base image:
+
+### 1. Ubuntu Base Image (v1.24.0-rc1)
+
+- Uses `ubuntu:24.04` as the base image.
+- Suitable for projects that need more control over the OS environment or require additional non-PHP services.
+- Installs PHP, Nginx, and other dependencies via `apt`, based on an external `apt-packages.env` file.
+- Provides a more flexible and extensible environment for advanced use cases.
+
+### 2. PHP-FPM Base Image (v2.83.0-rc1)
+
+- Uses `php:8.3-fpm` as the base image.
+- Suitable for projects that want a direct PHP runtime with FPM, commonly used for web applications.
+- Installs PHP extensions and system dependencies required for Drupal and similar PHP projects.
+- Composer and other developer tools are included.
+- **Recommended for most PHP/Drupal projects.**
+
+---
+
+## Versions
+
+- **Ubuntu Variant:** `v1.24.0-rc1`
+- **PHP-FPM Variant:** `v2.83.0-rc1`
+
+You can specify the version you want to use when requiring the package:
+
+```sh
+composer require --dev razeem/docker-base-template:v1.24.0-rc1
+# or
+composer require --dev razeem/docker-base-template:v2.83.0-rc1
+```
+
+---
+
 ## Features
 
 - **Automatic Docker Setup:**  
@@ -18,43 +54,50 @@ This project provides a **Composer plugin** that automatically copies a ready-to
 
 - **Extensible Docker Stack:**  
   Includes configuration for PHP, Nginx, SSH, and other common services.  
-  Installs system packages based on an external `apt-packages.env` file.
+  Installs system packages based on an external `apt-packages.env` file (especially in the Ubuntu variant).
 
 ---
 
 ## Usage
 
-### 1. Require the Plugin
-In repositories section in your composer json add the following
-```sh
-  {
-      "type": "vcs",
-      "url": "git@github.com:razeem/docker-base-template.git"
-  }
-```
-```sh
-composer require --dev razeem/docker-base-template
+### 1. Add the Plugin Repository
+
+In the `repositories` section of your `composer.json`, add:
+
+```json
+{
+    "type": "vcs",
+    "url": "git@github.com:razeem/docker-base-template.git"
+}
 ```
 
-### 2. On Install/Update
+### 2. Require the Plugin
+
+Specify a version:
+```sh
+composer require --dev razeem/docker-base-template:v1.24.0-rc1
+composer require --dev razeem/docker-base-template:v2.83.0-rc1
+```
+
+### 3. On Install/Update
 
 - The plugin will copy the contents of its `dist/` directory into your project root.
-- Create one file called `project-code.txt` in your project root folder and add your project code in JIRA; its value will be used for Docker Compose service and folder names.
+- Create a file called `project-code.txt` in your project root folder and add your project code (e.g., your JIRA project code); its value will be used for Docker Compose service and folder names.
 
-### 3. Customize
+### 4. Customize
 
 - Edit `docker-compose.yml` and `docker-compose-vm.yml` as needed.
 - Copy `.env.dist` to `.env` and set your environment variables.
-- Adjust `apt-packages.env` to add/remove system packages for your stack.
+- Adjust `apt-packages.env` to add/remove system packages for your stack (especially for the Ubuntu variant).
 
 ---
 
 ## File Structure
 
-- `dist/Dockerfile` – Main Docker build file, reads package list from `apt-packages.env`.
+- `dist/Dockerfile` – Main Docker build file, uses either Ubuntu or PHP-FPM as the base image depending on the version.
 - `dist/docker-compose.yml` – Standard Docker Compose file.
 - `dist/docker-compose-vm.yml` – Compose file for running in a VM.
-- `dist/Docker/apt-packages.env` – List of system packages to install (one per line).
+- `dist/Docker/apt-packages.env` – List of system packages to install (one per line, mainly for Ubuntu variant).
 - `dist/Docker/.env.dist` – Template for environment variables.
 - `dist/Docker/ssh/sshd_config` – SSH server configuration.
 - `dist/Docker/php/php.ini` – PHP configuration.
@@ -70,10 +113,10 @@ composer require --dev razeem/docker-base-template
   The plugin will use this for service and folder names in Compose files.
 
 - **System Packages:**  
-  Edit `Docker/apt-packages.env` to add/remove Ubuntu packages.
+  Edit `Docker/apt-packages.env` to add/remove Ubuntu packages (for Ubuntu variant).
 
 - **Environment Variables:**  
-  Edit `Docker/.env.dist` and copy to `.env` for your local settings.
+  Edit `.env` which is copied `Docker/.env.dist` for your local settings.
 
 ---
 
