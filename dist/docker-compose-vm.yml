@@ -1,12 +1,9 @@
 # Sample docker compose file for spinning up docker in virtual machine
-version: "3.1"
 services:
   project_name:
     build: ./
-    env_file:
-      - Docker/.env.dist # Modify the name if using a different file
     ports:
-      - 8086:80
+      - ${DOCKER_APP_PORT}:80
     volumes:
       # modify and provide the appropriate paths
       - /var/www/media_files/project_folder/files:/app/web/sites/default/files

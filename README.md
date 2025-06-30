@@ -97,12 +97,12 @@ composer require --dev razeem/docker-base-template:v2.83.0-rc1
 - `dist/Dockerfile` – Main Docker build file, uses either Ubuntu or PHP-FPM as the base image depending on the version.
 - `dist/docker-compose.yml` – Standard Docker Compose file.
 - `dist/docker-compose-vm.yml` – Compose file for running in a VM.
-- `dist/Docker/apt-packages.env` – List of system packages to install (one per line, mainly for Ubuntu variant).
+- `dist/Docker/app/apt-packages.env` – List of system packages to install (one per line, mainly for Ubuntu variant).
 - `dist/Docker/.env.dist` – Template for environment variables.
 - `dist/Docker/ssh/sshd_config` – SSH server configuration.
 - `dist/Docker/php/php.ini` – PHP configuration.
 - `dist/Docker/nginx/nginx.conf` – Nginx configuration.
-- `dist/Docker/start.sh` – Entrypoint/startup script.
+- `dist/Docker/scripts/start.sh` – Entrypoint/startup script.
 
 ---
 
@@ -113,7 +113,7 @@ composer require --dev razeem/docker-base-template:v2.83.0-rc1
   The plugin will use this for service and folder names in Compose files.
 
 - **System Packages:**  
-  Edit `Docker/apt-packages.env` to add/remove Ubuntu packages (for Ubuntu variant).
+  Edit `Docker/app/apt-packages.env` to add/remove Ubuntu packages (for Ubuntu variant).
 
 - **Environment Variables:**  
   Edit `.env` which is copied `Docker/.env.dist` for your local settings.

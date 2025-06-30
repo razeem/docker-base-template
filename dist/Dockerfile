@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y apt-utils
 
 # Copy the package list file into the image
-COPY ./Docker/apt-packages.env /tmp/apt-packages.env
+COPY ./Docker/app/apt-packages.env /tmp/apt-packages.env
 
 # Install packages from the external file (except apt-utils which is already installed)
 RUN apt-get update && \
@@ -77,8 +77,11 @@ RUN composer config --global process-timeout 2000 \
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts || \
     composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
+# Copy SSL certificate to the application directory
+COPY Docker/app/SslCertificate.crt.pem /app
+
 # Copy Drupal settings
-COPY Docker/settings.php /var/www/html/web/sites/default/
+COPY Docker/app/settings.php /var/www/html/web/sites/default/
 
 # create folder for assets and php files outside files folder (default location)
 RUN mkdir -p /var/www/html/web/sites/default/dist/assets/css
@@ -102,8 +105,8 @@ RUN nginx -t
 RUN php -v && php -m
 
 # Copy startup script, cron script, and logrotate config
-COPY ./Docker/start.sh /start.sh
-COPY ./Docker/cron.sh /var/www/html/cron.sh
+COPY ./Docker/scripts/start.sh /start.sh
+COPY ./Docker/scripts/cron.sh /var/www/html/cron.sh
 COPY ./Docker/nginx/nginx-logrotate /etc/logrotate.d/nginx
 RUN chmod +x /start.sh && chmod +x /var/www/html/cron.sh && chmod 644 /etc/logrotate.d/nginx
 

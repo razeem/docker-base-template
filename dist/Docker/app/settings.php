@@ -290,7 +290,7 @@ $databases = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = 'i5ncqePPcAD5mU59zmCbkmM_irpZPdkFSHpyQROQtHnD1a2mS2vuVoShjieq79CKB-LO1UN-3w';
+$settings['hash_salt'] = $_ENV['DRUPAL_HASH_SALT'] ?? 'i5ncqePPcAD5mU59zmCbkmM_irpZPdkFSHpyQROQtHnD1a2mS2vuVoShjieq79CKB-LO1UN-3w';
 
 /**
  * Deployment identifier.
@@ -760,11 +760,9 @@ $settings['entity_update_backup'] = TRUE;
  */
 $settings['migrate_node_migrate_type_classic'] = FALSE;
 
-$env = getenv();
-
 // Trusted Host settings from Environment variables.
-if (!empty($env['TRUSTED_HOST_PATTERNS'])) {
-  $expode_trusted_host_pattern = explode(",", $env['TRUSTED_HOST_PATTERNS']);
+if (!empty($_ENV['DRUPAL_TRUSTED_HOST_PATTERNS'])) {
+  $expode_trusted_host_pattern = explode(",", $_ENV['DRUPAL_TRUSTED_HOST_PATTERNS']);
   $trusted_host_pattern = [];
   foreach ($expode_trusted_host_pattern as $key => $url) {
     $parsed_url = (substr(trim($url), 0, 4) == 'http') ? parse_url(trim($url))['host'] : trim($url);
@@ -777,6 +775,7 @@ if (!empty($env['TRUSTED_HOST_PATTERNS'])) {
   }
   $settings['trusted_host_patterns'] = $trusted_host_pattern;
 }
+
 
 // Config Split and Environment indicator settings.
 switch (isset($env['NGINX_ENV']) ? $env['NGINX_ENV'] : 'dev') {
@@ -798,19 +797,23 @@ switch (isset($env['NGINX_ENV']) ? $env['NGINX_ENV'] : 'dev') {
 
 // Database settings.
 $databases['default']['default'] = [
-  'database' => isset($env['DB_NAME']) ? $env['DB_NAME'] : '',
-  'username' => isset($env['DB_USERNAME']) ? $env['DB_USERNAME'] : '',
-  'password' => isset($env['DB_PASSWORD']) ? $env['DB_PASSWORD'] : '',
+  'database' => isset($_ENV['DRUPAL_DB_NAME']) ? $_ENV['DRUPAL_DB_NAME'] : '',
+  'username' => isset($_ENV['DRUPAL_DB_USERNAME']) ? $_ENV['DRUPAL_DB_USERNAME'] : '',
+  'password' => isset($_ENV['DRUPAL_DB_PASSWORD']) ? $_ENV['DRUPAL_DB_PASSWORD'] : '',
   'prefix' => '',
-  'host' => isset($env['DB_HOST']) ? $env['DB_HOST'] : '',
+  'host' => isset($_ENV['DRUPAL_DB_HOST']) ? $_ENV['DRUPAL_DB_HOST'] : '',
   'port' => '3306',
   'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
   'driver' => 'mysql',
-  'pdo' => [
+];
+
+// Add SSL certificate except for local build.
+if (!$_ENV['IS_LOCAL_DOCKER_PROJECT']) {
+  $databases['default']['default']['pdo'] = [
     PDO::MYSQL_ATTR_SSL_CA => '/var/www/html/SslCertificate.crt.pem',
     PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-  ],
-];
+  ];
+}
 
 // Config sync folder settings.
 $settings['config_sync_directory'] = '../config/sync';
