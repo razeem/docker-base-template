@@ -62,10 +62,10 @@ COPY config /app/config
 RUN if [ -d "./patches" ]; then cp -r ./patches /app/patches; fi
 
 # create folder for assets and php files outside files folder (default location)
-RUN mkdir -p /app/web/sites/default/dist/assets/css
-RUN mkdir -p /app/web/sites/default/dist/assets/js
-RUN mkdir -p /app/web/sites/default/dist/php
-RUN mkdir -p /app/web/sites/default/files
+RUN mkdir -p /app/web/sites/default/dist/assets/css \
+    /app/web/sites/default/dist/assets/js \
+    /app/web/sites/default/dist/php \
+    /app/web/sites/default/files
 
 # Set proper permissions
 RUN chown -R www-data:www-data /app \
