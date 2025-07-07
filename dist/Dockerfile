@@ -2,8 +2,8 @@
 # Use Ubuntu 24.04 as base image
 FROM ubuntu:24.04
 
-# Install packages from the external file
-RUN apt-get update && apt-get install && apt-get clean -y \
+# Install system dependencies and required dev libs
+RUN apt-get update && apt-get install -y \
     apt-utils \
     nginx \
     php8.3 \
