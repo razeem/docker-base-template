@@ -63,13 +63,15 @@ class CopyDistPlugin implements PluginInterface, EventSubscriberInterface {
       return;
     }
 
-    // Read project code from project-code.txt
+    // Read project code from project-code.txt or prompt if not present
     $projectCodeFile = $targetDir . '/project-code.txt';
-    $projectFolder = strtolower(
-      file_exists($projectCodeFile)
-        ? trim(file_get_contents($projectCodeFile))
-        : substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 3)
-    );
+    if (!file_exists($projectCodeFile)) {
+      $projectFolder = strtolower(trim($event->getIO()->ask('Enter your project code (e.g., JIRA code): ')));
+      file_put_contents($projectCodeFile, $projectFolder);
+    }
+    else {
+      $projectFolder = strtolower(trim(file_get_contents($projectCodeFile)));
+    }
     $projectCode = $projectFolder . '_docker_local';
 
     $this->recurseCopyWithReplace($sourceDir, $targetDir, $projectCode, $projectFolder);
