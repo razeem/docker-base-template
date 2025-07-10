@@ -63,16 +63,43 @@ class CopyDistPlugin implements PluginInterface, EventSubscriberInterface {
       return;
     }
 
-    // Read project code from project-code.txt
+    // Read project code from project-code.txt or prompt if not present
     $projectCodeFile = $targetDir . '/project-code.txt';
-    $projectFolder = strtolower(
-      file_exists($projectCodeFile)
-        ? trim(file_get_contents($projectCodeFile))
-        : substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 3)
-    );
+    if (!file_exists($projectCodeFile)) {
+      $projectFolder = strtolower(trim($event->getIO()->ask('Enter your project code (e.g., JIRA code): ')));
+      file_put_contents($projectCodeFile, $projectFolder);
+    }
+    else {
+      $projectFolder = strtolower(trim(file_get_contents($projectCodeFile)));
+    }
     $projectCode = $projectFolder . '_docker_local';
 
     $this->recurseCopyWithReplace($sourceDir, $targetDir, $projectCode, $projectFolder);
+
+    // Multisite support: copy settings and .env for each site in multisites.list
+    $multisitesFile = $targetDir . '/Docker/app/multisites.list';
+    $settingsTemplate = $targetDir . '/Docker/app/settings-multi.php';
+    $envTemplate = $targetDir . '/Docker/.env.dist';
+    $webRoot = $targetDir . '/web/sites';
+
+    if (file_exists($multisitesFile)) {
+      $sites = file($multisitesFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+      foreach ($sites as $sitename) {
+        $siteDir = $webRoot . '/' . $sitename;
+        if (is_dir($siteDir)) {
+          // Copy settings-multi.php as settings.php
+          if (file_exists($settingsTemplate)) {
+            copy($settingsTemplate, $siteDir . '/settings.php');
+          }
+          // Create .env for each multisite
+          if (file_exists($envTemplate)) {
+            $envContent = file_get_contents($envTemplate);
+            $envContent = str_replace('DRUPAL_MULTISITE_', 'DRUPAL_' . strtoupper($sitename) . '_', $envContent);
+            file_put_contents($siteDir . '/.env', $envContent);
+          }
+        }
+      }
+    }
 
     $event->getIO()->write('<info>dist folder copied to project root.</info>');
   }
