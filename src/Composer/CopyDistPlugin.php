@@ -10,6 +10,8 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * This class implements a Composer plugin that copies docker configuration files to the project root.
@@ -64,39 +66,63 @@ class CopyDistPlugin implements PluginInterface, EventSubscriberInterface {
     }
 
     // Read project code from project-code.txt
-    $projectCodeFile = $targetDir . '/project-code.txt';
+    $projectCodeFile = $targetDir . '/project-details.yml';
+    try {
+      $project_content = file_exists($projectCodeFile)
+        ? file_get_contents($projectCodeFile)
+        : '';
+      $project_details = Yaml::parse($project_content);
+    }
+    catch (ParseException $e) {
+      // Log the YAML parsing error using the injected logger service.
+      echo "YAML parsing error: \n" . $e->getMessage();
+      // Return an empty array in case of parsing error.
+    }
     $projectFolder = strtolower(
-      file_exists($projectCodeFile)
-        ? trim(file_get_contents($projectCodeFile))
-        : substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 3)
+      $project_details['projectcode']
+      ? trim($project_details['projectcode'])
+      : substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 3)
     );
     $projectCode = $projectFolder . '_docker_local';
 
     $this->recurseCopyWithReplace($sourceDir, $targetDir, $projectCode, $projectFolder);
 
     // Multisite support: copy settings and .env for each site in multisites.list
-    $multisitesFile = $targetDir . '/Docker/app/multisites.list';
-    $settingsTemplate = $targetDir . '/Docker/app/settings-multi.php';
-    $envTemplate = $targetDir . '/Docker/.env.dist';
-    $webRoot = $targetDir . '/web/sites';
-
-    if (file_exists($multisitesFile)) {
-      $sites = file($multisitesFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-      foreach ($sites as $sitename) {
-        $siteDir = $webRoot . '/' . $sitename;
-        if (is_dir($siteDir)) {
-          // Copy settings-multi.php as settings.php
-          if (file_exists($settingsTemplate)) {
-            copy($settingsTemplate, $siteDir . '/settings.php');
-          }
-          // Create .env for each multisite
-          if (file_exists($envTemplate)) {
-            $envContent = file_get_contents($envTemplate);
-            $envContent = str_replace('DRUPAL_MULTISITE_', 'DRUPAL_' . strtoupper($sitename) . '_', $envContent);
-            file_put_contents($siteDir . '/.env', $envContent);
+    $multisitesFile = $project_details['multisite']
+      ? explode(' ', $project_details['multisite'])
+      : [];
+    $settingsTemplate = $targetDir . '/Docker/app/settings-multisite.php';
+    $envTemplate = file_exists($targetDir . '/.env.dist')
+      ? $targetDir . '/.env.dist'
+      : $sourceDir . '/Docker/.env.dist';
+    $dockerSettingsDir = $targetDir . '/Docker/settings';
+    $envContentDb = [
+      'DRUPAL_MULTISITE_DB_NAME = drupal_docker',
+      'DRUPAL_MULTISITE_DB_USERNAME = drupal_docker',
+      'DRUPAL_MULTISITE_DB_PASSWORD = drupal_docker',
+    ];
+    if (!empty($multisitesFile)) {
+      @mkdir($dockerSettingsDir, 0777, TRUE);
+      $envReplaceContent = '';
+      foreach ($multisitesFile as $sitename) {
+        // $siteDir = $webRoot . '/' . $sitename;
+        // Copy settings-multi.php as settings.php
+        if (file_exists($settingsTemplate)) {
+          copy($settingsTemplate, $dockerSettingsDir . '/settings.' . $sitename . '.php');
+          $settingsContent = file_get_contents($dockerSettingsDir . '/settings.' . $sitename . '.php');
+          $settingsContent = str_replace('DRUPAL_MULTISITE_', 'DRUPAL_' . strtoupper($sitename) . '_', $settingsContent);
+          file_put_contents($dockerSettingsDir . '/settings.' . $sitename . '.php', $settingsContent);
+        }
+        // Create .env for each multisite
+        if (file_exists($envTemplate)) {
+          foreach ($envContentDb as $envContentDbValue) {
+            $envReplaceContent .= str_replace('DRUPAL_MULTISITE_', 'DRUPAL_' . strtoupper($sitename) . '_', $envContentDbValue) . "\n";
           }
         }
       }
+      $envContentData = file_get_contents($envTemplate);
+      $envContentData = $envContentData . trim($envReplaceContent);
+      file_put_contents($dockerSettingsDir . '/test.env', $envContentData);
     }
 
     $event->getIO()->write('<info>dist folder copied to project root.</info>');
