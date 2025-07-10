@@ -74,6 +74,31 @@ class CopyDistPlugin implements PluginInterface, EventSubscriberInterface {
 
     $this->recurseCopyWithReplace($sourceDir, $targetDir, $projectCode, $projectFolder);
 
+    // Multisite support: copy settings and .env for each site in multisites.list
+    $multisitesFile = $targetDir . '/Docker/app/multisites.list';
+    $settingsTemplate = $targetDir . '/Docker/app/settings-multi.php';
+    $envTemplate = $targetDir . '/Docker/.env.dist';
+    $webRoot = $targetDir . '/web/sites';
+
+    if (file_exists($multisitesFile)) {
+      $sites = file($multisitesFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+      foreach ($sites as $sitename) {
+        $siteDir = $webRoot . '/' . $sitename;
+        if (is_dir($siteDir)) {
+          // Copy settings-multi.php as settings.php
+          if (file_exists($settingsTemplate)) {
+            copy($settingsTemplate, $siteDir . '/settings.php');
+          }
+          // Create .env for each multisite
+          if (file_exists($envTemplate)) {
+            $envContent = file_get_contents($envTemplate);
+            $envContent = str_replace('DRUPAL_MULTISITE_', 'DRUPAL_' . strtoupper($sitename) . '_', $envContent);
+            file_put_contents($siteDir . '/.env', $envContent);
+          }
+        }
+      }
+    }
+
     $event->getIO()->write('<info>dist folder copied to project root.</info>');
   }
 
