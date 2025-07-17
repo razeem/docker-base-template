@@ -46,6 +46,12 @@ server {
         return 404;
     }
 
+    # Security: Block access to private files
+    location ~ ^/sites/.*/private/ {
+        deny all;
+        return 404;
+    }
+
     # Expires headers for static assets
     location ~* \.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf|eot|mp4|webm|ogg|ogv|json|xml|rss|atom|txt)$ {
         try_files $uri @rewrite;

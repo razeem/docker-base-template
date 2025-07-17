@@ -67,7 +67,7 @@ In the `repositories` section of your `composer.json`, add:
 ```json
 {
     "type": "vcs",
-    "url": "git@github.com:razeem/docker-base-template.git"
+    "url": "https://github.com/razeem/docker-base-template.git"
 }
 ```
 
