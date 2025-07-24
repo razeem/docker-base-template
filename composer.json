@@ -12,7 +12,8 @@
     }
   ],
   "require": {
-    "composer-plugin-api": "^2.0"
+    "composer-plugin-api": "^2.0",
+    "symfony/yaml": ">=3.4.0"
   },
   "support": {
     "issues": "https://github.com/razeem/docker-base-template/issues",
