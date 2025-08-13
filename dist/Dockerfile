@@ -2,9 +2,13 @@
 # Use Ubuntu 24.04 as base image
 FROM ubuntu:24.04
 
-# Install system dependencies and required dev libs
-RUN apt-get update && apt-get install -y \
+# Set environment variables to prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install necessary packages including CA certificates
+RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
+    ca-certificates \
     nginx \
     php8.3 \
     php8.3-cli \
@@ -24,14 +28,12 @@ RUN apt-get update && apt-get install -y \
     git \
     cron \
     logrotate \
-    openssh-server \
-    rm -rf /var/lib/apt/lists/*
-
-# Set environment variables to prevent interactive prompts
-ENV DEBIAN_FRONTEND=noninteractive
+    openssh-server && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    composer --version
 # ------------------------------- base image ends ------------------------------
 
 # Copy the package list file into the image
@@ -51,9 +53,6 @@ RUN echo "root:Docker!" | chpasswd
 
 # Generate SSH host keys
 RUN ssh-keygen -A
-
-# Verify Composer installation
-RUN composer --version
 
 # Create nginx user and directories
 RUN mkdir -p /var/log/nginx \
