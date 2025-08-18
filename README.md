@@ -29,12 +29,12 @@ Ideal for PHP/Drupal projects needing a quick, opinionated Docker setup.
 ## 🚀 Usage
 
 ### 1. Add Repo in `composer.json`
-sss json
+``` json
 {
   "type": "vcs",
   "url": "https://github.com/razeem/docker-base-template.git"
 }
-sss
+```
 
 ### 2. Require the Plugin
 `composer require --dev razeem/docker-base-template:~24.04.0`
