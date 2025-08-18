@@ -8,34 +8,20 @@ This project provides a **Composer plugin** that automatically copies a ready-to
 
 This template supports **two main variants** for your Docker base image:
 
-### 1. Ubuntu Base Image (~1.24.0-rc1)
+### 1. Ubuntu Base Image (~24.04.0)
 
 - Uses `ubuntu:24.04` as the base image.
 - Suitable for projects that need more control over the OS environment or require additional non-PHP services.
 - Installs PHP, Nginx, and other dependencies via `apt`, based on an external `apt-packages.env` file.
 - Provides a more flexible and extensible environment for advanced use cases.
 
-### 2. PHP-FPM Base Image (~2.83.0-rc1)
-
-- Uses `php:8.3-fpm` as the base image.
-- Suitable for projects that want a direct PHP runtime with FPM, commonly used for web applications.
-- Installs PHP extensions and system dependencies required for Drupal and similar PHP projects.
-- Composer and other developer tools are included.
-- **Recommended for most PHP/Drupal projects.**
-
----
 
 ## Versions
 
-- **Ubuntu Variant:** `~1.24.0-rc1`
-- **PHP-FPM Variant:** `~2.83.0-rc1`
-
-You can specify the version you want to use when requiring the package:
+- **Ubuntu Variant:** `~24.04.0`
 
 ```sh
-composer require --dev razeem/docker-base-template:~1.24.0-rc1
-# or
-composer require --dev razeem/docker-base-template:~2.83.0-rc1
+composer require --dev razeem/docker-base-template:~24.04.0
 ```
 
 ---
@@ -75,8 +61,7 @@ In the `repositories` section of your `composer.json`, add:
 
 Specify a version:
 ```sh
-composer require --dev razeem/docker-base-template:~1.24.0-rc1
-composer require --dev razeem/docker-base-template:~2.83.0-rc1
+composer require --dev razeem/docker-base-template:~24.04.0
 ```
 
 ### 3. On Install/Update
