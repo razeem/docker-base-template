@@ -20,18 +20,17 @@ echo "; Pass environment variables to PHP-FPM" >> /etc/php/8.3/fpm/pool.d/env.co
 
 # Add each environment variable to PHP-FPM configuration
 env | while read -r line; do
-    # Skip empty lines
     [[ -z "$line" ]] && continue
-    
-    # Extract key and value properly
     key="${line%%=*}"
     value="${line#*=}"
-    
-    # Skip internal variables and paths that might cause issues
-    if [[ ! "$key" =~ ^(PWD|SHLVL|_|PATH|HOSTNAME|OLDPWD)$ ]]; then
-        # Escape any quotes in the value
+
+    # Skip system vars and empty values
+    if [[ -n "$value" && ! "$key" =~ ^(PWD|SHLVL|_|PATH|HOSTNAME|OLDPWD)$ ]]; then
         escaped_value=$(printf '%s\n' "$value" | sed 's/"/\\"/g')
         echo "env[$key] = \"$escaped_value\"" >> /etc/php/8.3/fpm/pool.d/env.conf
+        echo "[DEBUG] Added env var to PHP-FPM: $key"
+    else
+        echo "[DEBUG] Skipped env var: $key (empty or system)"
     fi
 done
 
@@ -69,11 +68,14 @@ fi
 service cron start
 
 # Start PHP-FPM service
+echo "Starting PHP-FPM service..."
 service php8.3-fpm start
 
 # Verify PHP-FPM is running
 if ! pgrep -x "php-fpm8.3" > /dev/null; then
     echo "Error: PHP-FPM failed to start"
+    echo "[DEBUG] Contents of env.conf:"
+    cat /etc/php/8.3/fpm/pool.d/env.conf || true
     exit 1
 fi
 
