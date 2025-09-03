@@ -12,7 +12,7 @@ Ideal for PHP/Drupal projects needing a quick, opinionated Docker setup.
 - Installs PHP, Nginx, and dependencies via `apt` (driven by `apt-packages.env`)
 - Flexible, extensible environment for advanced use cases
 
-📦 Install: `composer require --dev razeem/docker-base-template:~24.04.0`
+📦 Install: `composer require --dev razeem/docker-base-template:~24.04.1`
 
 ---
 
@@ -37,7 +37,7 @@ Ideal for PHP/Drupal projects needing a quick, opinionated Docker setup.
 ```
 
 ### 2. Require the Plugin
-`composer require --dev razeem/docker-base-template:~24.04.0`
+`composer require --dev razeem/docker-base-template:~24.04.1`
 
 ### 3. Configure
 - Copy `.env.dist` → `.env` and customize  

@@ -45,6 +45,9 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Install Azure CLI
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
 # Copy custom SSH configuration (after SSH is installed)
 COPY ./Docker/ssh/sshd_config /etc/ssh/sshd_config
 
@@ -92,8 +95,8 @@ RUN mkdir -p /var/www/html
 COPY ./web /var/www/html/web
 COPY composer.json /var/www/html/composer.json
 COPY composer.lock /var/www/html/composer.lock
-COPY config /var/www/html/config
-COPY patches /var/www/html/patches
+RUN if [ -d "./config" ]; then cp -r ./patches /var/www/html/config; fi
+RUN if [ -d "./patches" ]; then cp -r ./patches /var/www/html/patches; fi
 
 # Set working directory
 WORKDIR /var/www/html
@@ -108,9 +111,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 
 # Copy SSL certificate to the application directory
 COPY Docker/app/SslCertificate.crt.pem /app
-
-# Copy Drupal settings
-COPY Docker/app/settings.php /var/www/html/web/sites/default/
 
 # create folder for assets and php files outside files folder (default location)
 RUN mkdir -p /var/www/html/web/sites/default/dist/assets/css \

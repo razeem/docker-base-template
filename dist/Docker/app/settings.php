@@ -794,17 +794,29 @@ switch (isset($_ENV['DRUPAL_NGINX_ENV']) ? $_ENV['DRUPAL_NGINX_ENV'] : 'dev') {
     break;
 }
 
+// Setting for error level
+if (isset($_ENV['DRUPAL_ERROR_DEBUG']) && $_ENV['DRUPAL_ERROR_DEBUG'] == 'true') {
+  $config['system.logging']['error_level'] = 'verbose';
+}
+
 // Database settings.
-$databases['default']['default'] = [
-  'database' => isset($_ENV['DRUPAL_MULTISITE_DB_NAME']) ? $_ENV['DRUPAL_MULTISITE_DB_NAME'] : '',
-  'username' => isset($_ENV['DRUPAL_MULTISITE_DB_USERNAME']) ? $_ENV['DRUPAL_MULTISITE_DB_USERNAME'] : '',
-  'password' => isset($_ENV['DRUPAL_MULTISITE_DB_PASSWORD']) ? $_ENV['DRUPAL_MULTISITE_DB_PASSWORD'] : '',
-  'prefix' => '',
-  'host' => isset($_ENV['DRUPAL_DB_HOST']) ? $_ENV['DRUPAL_DB_HOST'] : '',
-  'port' => '3306',
-  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
-  'driver' => 'mysql',
-];
+if (
+  isset($_ENV['DRUPAL_MULTISITE_DB_NAME']) && !empty($_ENV['DRUPAL_MULTISITE_DB_NAME']) &&
+  isset($_ENV['DRUPAL_MULTISITE_DB_USERNAME']) && !empty($_ENV['DRUPAL_MULTISITE_DB_USERNAME']) &&
+  isset($_ENV['DRUPAL_MULTISITE_DB_PASSWORD']) && !empty($_ENV['DRUPAL_MULTISITE_DB_PASSWORD']) &&
+  isset($_ENV['DRUPAL_DB_HOST']) && !empty($_ENV['DRUPAL_DB_HOST'])
+) {
+  $databases['default']['default'] = [
+    'database' => $_ENV['DRUPAL_MULTISITE_DB_NAME'],
+    'username' => $_ENV['DRUPAL_MULTISITE_DB_USERNAME'],
+    'password' => $_ENV['DRUPAL_MULTISITE_DB_PASSWORD'],
+    'prefix' => '',
+    'host' => $_ENV['DRUPAL_DB_HOST'],
+    'port' => '3306',
+    'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
+    'driver' => 'mysql',
+  ];
+}
 
 // Add SSL certificate except for local build.
 if (!$_ENV['IS_LOCAL_DOCKER_PROJECT'] && !$_ENV['IS_DDEV_PROJECT']) {
@@ -854,7 +866,7 @@ if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
 }
 
 // Attach the settings.ddev.php file if it exists.
-if (getenv('IS_DDEV_PROJECT') == 'true' && file_exists(__DIR__ . '/settings.ddev.php')) {
+if (isset($_ENV['IS_DDEV_PROJECT']) && $_ENV['IS_DDEV_PROJECT'] == 'true' && file_exists(__DIR__ . '/settings.ddev.php')) {
   include __DIR__ . '/settings.ddev.php';
 }
 
@@ -871,13 +883,13 @@ $settings['twig_sandbox_allowed_methods'] = [
 
 // Setting Azure redis cache config
 if (
-  !empty($env['DRUPAL_MULTISITE_REDIS_HOST'])
-  && !empty($env['DRUPAL_MULTISITE_REDIS_PORT'])
-  && !empty($env['DRUPAL_MULTISITE_REDIS_PASSWORD'])
+  isset($_ENV['DRUPAL_MULTISITE_REDIS_HOST']) && !empty($_ENV['DRUPAL_MULTISITE_REDIS_HOST']) &&
+  isset($_ENV['DRUPAL_MULTISITE_REDIS_PORT']) && !empty($_ENV['DRUPAL_MULTISITE_REDIS_PORT']) &&
+  isset($_ENV['DRUPAL_MULTISITE_REDIS_PASSWORD']) && !empty($_ENV['DRUPAL_MULTISITE_REDIS_PASSWORD'])
 ) {
-  $settings['redis.connection']['host'] = $env['DRUPAL_MULTISITE_REDIS_HOST'];
-  $settings['redis.connection']['port'] = (int)$env['DRUPAL_MULTISITE_REDIS_PORT'];
-  $settings['redis.connection']['password'] = $env['DRUPAL_MULTISITE_REDIS_PASSWORD'];
+  $settings['redis.connection']['host'] = $_ENV['DRUPAL_MULTISITE_REDIS_HOST'];
+  $settings['redis.connection']['port'] = (int)$_ENV['DRUPAL_MULTISITE_REDIS_PORT'];
+  $settings['redis.connection']['password'] = $_ENV['DRUPAL_MULTISITE_REDIS_PASSWORD'];
   $settings['redis.connection']['database'] = 0;
   $settings['redis.connection']['ssl'] = true;
   // Set Redis as the default backend for any cache bin not otherwise specified.
